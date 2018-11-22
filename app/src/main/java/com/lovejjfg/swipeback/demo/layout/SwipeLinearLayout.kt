@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package com.lovejjfg.swipeback
+package com.lovejjfg.swipeback.demo.layout
 
 import android.app.Activity
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
+import android.support.annotation.ColorInt
 import android.util.AttributeSet
 import android.view.MotionEvent
-import android.widget.FrameLayout
+import android.widget.LinearLayout
 import com.lovejjfg.swipeback.SwipeBackHelper
 import com.lovejjfg.swipeback.SwipeBackHelper.Callback
 
@@ -30,15 +32,20 @@ import com.lovejjfg.swipeback.SwipeBackHelper.Callback
  * Email: lovejjfg@gmail.com
  */
 @Suppress("unused")
-class SwipeFrameLayout @JvmOverloads constructor(
+class SwipeLinearLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = -1
-) : FrameLayout(context, attrs, defStyleAttr) {
+) : LinearLayout(context, attrs, defStyleAttr) {
     private var swipeBackHelper: SwipeBackHelper =
         SwipeBackHelper(this, object : Callback() {
             override fun onBackReleased() {
                 (getContext() as? Activity)?.finish()
+            }
+
+            @ColorInt
+            override fun getArrowColor(): Int {
+                return Color.RED
             }
         })
 

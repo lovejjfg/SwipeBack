@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.lovejjfg.swipeback
+package com.lovejjfg.swipeback.demo.layout
 
 import android.app.Activity
 import android.content.Context
 import android.graphics.Canvas
+import android.support.constraint.ConstraintLayout
 import android.util.AttributeSet
 import android.view.MotionEvent
-import android.widget.RelativeLayout
 import com.lovejjfg.swipeback.SwipeBackHelper
 import com.lovejjfg.swipeback.SwipeBackHelper.Callback
 
@@ -30,11 +30,11 @@ import com.lovejjfg.swipeback.SwipeBackHelper.Callback
  * Email: lovejjfg@gmail.com
  */
 @Suppress("unused")
-class SwipeRelativeLayout @JvmOverloads constructor(
+class SwipeConstraintLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = -1
-) : RelativeLayout(context, attrs, defStyleAttr) {
+) : ConstraintLayout(context, attrs, defStyleAttr) {
     private var swipeBackHelper: SwipeBackHelper =
         SwipeBackHelper(this, object : Callback() {
             override fun onBackReleased() {

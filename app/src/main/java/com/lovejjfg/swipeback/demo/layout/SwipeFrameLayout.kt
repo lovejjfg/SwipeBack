@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.lovejjfg.swipeback
+package com.lovejjfg.swipeback.demo.layout
 
 import android.app.Activity
 import android.content.Context
 import android.graphics.Canvas
-import android.support.design.widget.CoordinatorLayout
 import android.util.AttributeSet
 import android.view.MotionEvent
+import android.widget.FrameLayout
 import com.lovejjfg.swipeback.SwipeBackHelper
 import com.lovejjfg.swipeback.SwipeBackHelper.Callback
 
@@ -30,11 +30,11 @@ import com.lovejjfg.swipeback.SwipeBackHelper.Callback
  * Email: lovejjfg@gmail.com
  */
 @Suppress("unused")
-class SwipeCoordinatorLayout @JvmOverloads constructor(
+class SwipeFrameLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = -1
-) : CoordinatorLayout(context, attrs, defStyleAttr) {
+) : FrameLayout(context, attrs, defStyleAttr) {
     private var swipeBackHelper: SwipeBackHelper =
         SwipeBackHelper(this, object : Callback() {
             override fun onBackReleased() {
@@ -43,11 +43,11 @@ class SwipeCoordinatorLayout @JvmOverloads constructor(
         })
 
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
-        return swipeBackHelper.onInterceptTouchEvent(ev)
+        return swipeBackHelper.onInterceptTouchEvent(ev) || super.onInterceptTouchEvent(ev)
     }
 
     override fun onTouchEvent(ev: MotionEvent?): Boolean {
-        return swipeBackHelper.onTouchEvent(ev)
+        return swipeBackHelper.onTouchEvent(ev) || super.onTouchEvent(ev)
     }
 
     override fun dispatchDraw(canvas: Canvas?) {
