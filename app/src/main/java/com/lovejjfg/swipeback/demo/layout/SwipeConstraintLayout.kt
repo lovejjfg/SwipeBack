@@ -22,6 +22,7 @@ import android.graphics.Canvas
 import android.support.constraint.ConstraintLayout
 import android.util.AttributeSet
 import android.view.MotionEvent
+import android.widget.Toast
 import com.lovejjfg.swipeback.SwipeBackHelper
 import com.lovejjfg.swipeback.SwipeBackHelper.Callback
 
@@ -37,8 +38,12 @@ class SwipeConstraintLayout @JvmOverloads constructor(
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
     private var swipeBackHelper: SwipeBackHelper =
         SwipeBackHelper(this, object : Callback() {
-            override fun onBackReleased() {
-                (getContext() as? Activity)?.finish()
+            override fun onBackReleased(type: Int) {
+                if (type == SwipeBackHelper.EDGE_LEFT) {
+                    (getContext() as? Activity)?.finish()
+                } else {
+                    Toast.makeText(context, "GO FORWARD", Toast.LENGTH_SHORT).show()
+                }
             }
         })
 
