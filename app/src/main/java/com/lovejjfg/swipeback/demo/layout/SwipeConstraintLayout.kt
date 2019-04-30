@@ -36,12 +36,17 @@ class SwipeConstraintLayout @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = -1
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
+    public var callback: BackCallback? = null
     private var swipeBackHelper: SwipeBackHelper =
         SwipeBackHelper(this, object : Callback() {
             override fun onBackReleased(type: Int) {
                 if (type == SwipeBackHelper.EDGE_LEFT) {
                     (getContext() as? Activity)?.finish()
                 } else {
+                    if (callback != null) {
+                        callback?.invoke()
+                        return
+                    }
                     Toast.makeText(context, "GO FORWARD", Toast.LENGTH_SHORT).show()
                 }
             }

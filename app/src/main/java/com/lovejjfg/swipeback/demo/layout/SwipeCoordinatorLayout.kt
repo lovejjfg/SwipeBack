@@ -36,12 +36,17 @@ class SwipeCoordinatorLayout @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = -1
 ) : CoordinatorLayout(context, attrs, defStyleAttr) {
+    public var callback: BackCallback? = null
     private var swipeBackHelper: SwipeBackHelper =
         SwipeBackHelper(this, object : Callback() {
             override fun onBackReleased(type: Int) {
                 if (type == SwipeBackHelper.EDGE_LEFT) {
                     (getContext() as? Activity)?.finish()
                 } else {
+                    if (callback != null) {
+                        callback?.invoke()
+                        return
+                    }
                     Toast.makeText(context, "GO FORWARD", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -62,3 +67,4 @@ class SwipeCoordinatorLayout @JvmOverloads constructor(
         swipeBackHelper.onDispatchDraw(canvas)
     }
 }
+typealias BackCallback = (() -> Unit)

@@ -44,7 +44,6 @@ class SwipeBackHelper(
     private var xResult: Float = 0F
     private var yResult: Float = 0F
     private var rawX: Float = 0F
-    private var rawY: Float = 0F
     private val path = Path()
     private val arrowPath = Path()
     private val pathPaint = Paint()
@@ -85,21 +84,21 @@ class SwipeBackHelper(
         animator = ValueAnimator()
         animator.setObjectValues(1f, 0)
         animator.interpolator = LINEAR_INTERPOLATOR
-        animator.duration = ANIMATOR_DURATION
         animator.addUpdateListener { animation ->
             val animatedFraction = animation.animatedFraction
-            invalidate((1 - animatedFraction) * rawX)
+            val min = Math.min(maxPeakValue, rawX)
+            invalidate((1 - animatedFraction) * min)
         }
     }
 
     private fun buildBezierPoints() {
         initControlPoint(xResult)
         val order = mControlPoints.size - 1
-        for (t in 0 until FRAME) {
+        for (t in 0..FRAME) {
             val delta = t * 1.0f / FRAME
             PointFPool.setPointF(
                 t,
-                calculateX(order, 0, delta),
+                if (t == 0 || t == FRAME) 0f else calculateX(order, 0, delta),
                 calculateY(order, 0, delta)
             )
         }
@@ -192,22 +191,19 @@ class SwipeBackHelper(
     }
 
     private fun handleUpEvent() {
+        if (animator.isRunning) {
+            animator.cancel()
+        }
+        val min = Math.min(ANIMATOR_DURATION, Math.abs(rawX).toLong())
         if (percent >= 1) {
-            mBezierPoints = null
-            targetView.invalidate()
-            targetView.post(callbackRunnable)
-        } else {
-            if (animator.isRunning) {
-                animator.cancel()
-            }
+            animator.duration = (min * 0.8f).toLong()
             animator.start()
-            currentEdgeType = 0
+            targetView.postDelayed(callbackRunnable, min)
+        } else {
+            animator.duration = min
+            animator.start()
         }
         downEvent = null
-        rawX = 0f
-        rawY = 0f
-        xResult = 0f
-        yResult = 0f
     }
 
     fun onDispatchDraw(canvas: Canvas?) {
@@ -222,15 +218,8 @@ class SwipeBackHelper(
         }
         path.close()
         canvas.save()
-        val offsetX = if (currentEdgeType == EDGE_LEFT) -1f else 1f
-        canvas.translate(offsetX, 0f)
         canvas.drawPath(path, pathPaint)
-        if (percent == 0f) {
-            canvas.restore()
-            return
-        }
         drawArrow(canvas)
-        canvas.restore()
     }
 
     private fun drawArrow(canvas: Canvas) {
@@ -303,9 +292,9 @@ class SwipeBackHelper(
 
     private object PointFPool {
 
-        internal val points = ArrayList<PointF>(FRAME)
+        val points = ArrayList<PointF>(FRAME + 1)
 
-        internal fun setPointF(pos: Int, x: Float, y: Float) {
+        fun setPointF(pos: Int, x: Float, y: Float) {
             if (pos >= points.size) {
                 points.add(PointF(x, y))
             } else {
@@ -315,7 +304,7 @@ class SwipeBackHelper(
     }
 
     abstract class Callback {
-        open fun onBackReleased(type: Int) {}
+        open fun onBackReleased(type: Int) = Unit
         @ColorInt
         open fun getShapeColor(): Int {
             return Color.BLACK
@@ -355,4 +344,3 @@ class SwipeBackHelper(
         const val EDGE_RIGHT = 2
     }
 }
-
