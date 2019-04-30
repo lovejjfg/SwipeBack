@@ -48,9 +48,25 @@ class SwipeLinearLayout @JvmOverloads constructor(
                 }
             }
 
+            override fun getShapeAlpha(): Int = 220
+
             @ColorInt
             override fun getArrowColor(): Int {
-                return Color.RED
+                return Color.parseColor("#ff00ff")
+            }
+
+            override fun isShapeAlphaGradient(): Boolean = true
+
+            override fun onShapeChange(percent: Float) {
+                println(percent)
+            }
+
+            override fun getShapeMaxPeak(): Float {
+                return 150f
+            }
+
+            override fun getEdgeTrackingEnabled(): Int {
+                return SwipeBackHelper.EDGE_LEFT_RIGHT
             }
         })
 

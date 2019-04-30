@@ -39,15 +39,15 @@ class SwipeBackHelper(
     private val targetView: ViewGroup,
     private val callback: Callback
 ) {
-    private var mBezierPoints: ArrayList<PointF>? = null
-    private val mControlPoints = ArrayList<PointF>(5)
+    private var bezierPoints: ArrayList<PointF>? = null
+    private val controlPoints = ArrayList<PointF>(5)
     private var xResult: Float = 0F
     private var yResult: Float = 0F
     private var rawX: Float = 0F
     private val path = Path()
     private val arrowPath = Path()
     private val pathPaint = Paint()
-    private var animator: ValueAnimator
+    private var returnAnimator: ValueAnimator
     private var percent: Float = 0F
     private var arrowLength: Float = 0F
     private var arrowPaint: Paint
@@ -68,8 +68,9 @@ class SwipeBackHelper(
         trackingEdges = callback.getEdgeTrackingEnabled()
         val peakValue = callback.getShapeMaxPeak() * REAL_PEAK_RATIO
         maxPeakValue = if (peakValue != 0f) peakValue else context.dip2px(24f * REAL_PEAK_RATIO)
-        edgeSize = context.dip2px(24f)
-        xDefaultOffset = context.dip2px(24f)
+        val size = callback.getEdgeSize()
+        edgeSize = if (size == -1f) context.dip2px(24f) else size
+        xDefaultOffset = context.dip2px(50f)
         arrowLength = maxPeakValue * 0.1f
         pathPaint.color = callback.getShapeColor()
         pathPaint.style = Paint.Style.FILL
@@ -81,10 +82,10 @@ class SwipeBackHelper(
         arrowPaint.strokeCap = Paint.Cap.ROUND
         arrowPaint.style = Paint.Style.STROKE
 
-        animator = ValueAnimator()
-        animator.setObjectValues(1f, 0)
-        animator.interpolator = LINEAR_INTERPOLATOR
-        animator.addUpdateListener { animation ->
+        returnAnimator = ValueAnimator()
+        returnAnimator.setObjectValues(1f, 0)
+        returnAnimator.interpolator = LINEAR_INTERPOLATOR
+        returnAnimator.addUpdateListener { animation ->
             val animatedFraction = animation.animatedFraction
             val min = Math.min(maxPeakValue, rawX)
             invalidate((1 - animatedFraction) * min)
@@ -93,16 +94,16 @@ class SwipeBackHelper(
 
     private fun buildBezierPoints() {
         initControlPoint(xResult)
-        val order = mControlPoints.size - 1
+        val order = controlPoints.size - 1
         for (t in 0..FRAME) {
             val delta = t * 1.0f / FRAME
             PointFPool.setPointF(
                 t,
-                if (t == 0 || t == FRAME) 0f else calculateX(order, 0, delta),
+                calculateX(order, 0, delta),
                 calculateY(order, 0, delta)
             )
         }
-        mBezierPoints = PointFPool.points
+        bezierPoints = PointFPool.points
     }
 
     private fun invalidate(rawX: Float) {
@@ -111,6 +112,7 @@ class SwipeBackHelper(
         }
         val min = if (rawX != 0f) Math.min(rawX, maxPeakValue) else 0F
         percent = min / maxPeakValue
+        callback.onShapeChange(percent)
         xResult = INTERPOLATOR.getInterpolation(percent) * maxPeakValue
         buildBezierPoints()
         targetView.invalidate()
@@ -158,7 +160,7 @@ class SwipeBackHelper(
         if (currentEdgeType == 0) {
             return false
         }
-        if (animator.isRunning) {
+        if (returnAnimator.isRunning) {
             return false
         }
         calculateRawX(event)
@@ -184,24 +186,24 @@ class SwipeBackHelper(
 
     private fun calculateRawX(event: MotionEvent) {
         if (currentEdgeType == EDGE_LEFT) {
-            rawX = (event.x - xDefaultOffset) * 0.8f
+            rawX = (event.x - xDefaultOffset) * GOLDEN_RATIO_LARGE
         } else if (currentEdgeType == EDGE_RIGHT) {
-            rawX = (targetView.width - event.x - xDefaultOffset * 2) * 0.8f
+            rawX = (targetView.width - event.x - xDefaultOffset) * GOLDEN_RATIO_LARGE
         }
     }
 
     private fun handleUpEvent() {
-        if (animator.isRunning) {
-            animator.cancel()
+        if (returnAnimator.isRunning) {
+            returnAnimator.cancel()
         }
         val min = Math.min(ANIMATOR_DURATION, Math.abs(rawX).toLong())
         if (percent >= 1) {
-            animator.duration = (min * 0.8f).toLong()
-            animator.start()
+            returnAnimator.duration = (min * GOLDEN_RATIO_LARGE).toLong()
+            returnAnimator.start()
             targetView.postDelayed(callbackRunnable, min)
         } else {
-            animator.duration = min
-            animator.start()
+            returnAnimator.duration = min
+            returnAnimator.start()
         }
         downEvent = null
     }
@@ -210,27 +212,34 @@ class SwipeBackHelper(
         if (canvas == null) {
             return
         }
-        val points = mBezierPoints ?: return
-        pathPaint.alpha = (percent * callback.getShapeAlpha()).toInt()
+        val points = bezierPoints ?: return
+        pathPaint.alpha =
+            if (callback.isShapeAlphaGradient()) (percent * callback.getShapeAlpha()).toInt()
+            else callback.getShapeAlpha()
         path.reset()
         points.forEachIndexed { index, pointF ->
             if (index == 0) path.moveTo(pointF.x, pointF.y) else path.lineTo(pointF.x, pointF.y)
         }
         path.close()
         canvas.save()
+        canvas.translate(if (currentEdgeType == EDGE_LEFT) -1f else 1f, 0f)
         canvas.drawPath(path, pathPaint)
+        if (percent == 0f) {
+            canvas.restore()
+            return
+        }
         drawArrow(canvas)
+        canvas.restore()
     }
 
     private fun drawArrow(canvas: Canvas) {
-        val offset = if (currentEdgeType == EDGE_LEFT) 1f else -1f
         arrowPaint.alpha = MIN_ALPHA + (percent * PERCENT_MAX_ALPHA).toInt()
         arrowPath.reset()
         if (percent > GOLDEN_RATIO) {
             val sin = Math.sin(Math.toRadians((START_ANGLE + (1.0 - percent) * PERCENT_MAX_ANGLE))).toFloat()
             val cos = Math.cos(Math.toRadians((START_ANGLE + (1.0 - percent) * PERCENT_MAX_ANGLE))).toFloat()
             val dy = arrowLength * sin
-            val dx = arrowLength * cos * offset
+            val dx = arrowLength * cos * if (currentEdgeType == EDGE_LEFT) 1f else -1f
             val x = if (currentEdgeType == EDGE_LEFT) xResult * 0.2f else targetView.width - xResult * 0.2f
 
             arrowPath.moveTo(x, yResult - dy)
@@ -266,22 +275,26 @@ class SwipeBackHelper(
     }
 
     private fun addControlPoint(pos: Int, x: Float, y: Float) {
-        if (pos >= mControlPoints.size) {
-            mControlPoints.add(PointF(x, y))
+        if (pos >= controlPoints.size) {
+            controlPoints.add(PointF(x, y))
         } else {
-            mControlPoints[pos].set(x, y)
+            controlPoints[pos].set(x, y)
         }
     }
 
     private fun calculateX(i: Int, j: Int, t: Float): Float {
-        return if (i == 1) {
-            (1 - t) * mControlPoints[j].x + t * mControlPoints[j + 1].x
-        } else (1 - t) * calculateX(i - 1, j, t) + t * calculateX(i - 1, j + 1, t)
+        return if (i == 0 || i == FRAME)
+            if (currentEdgeType == EDGE_LEFT) 0f
+            else targetView.width.toFloat() + 1
+        else
+            if (i == 1) {
+                (1 - t) * controlPoints[j].x + t * controlPoints[j + 1].x
+            } else (1 - t) * calculateX(i - 1, j, t) + t * calculateX(i - 1, j + 1, t)
     }
 
     private fun calculateY(i: Int, j: Int, t: Float): Float {
         return if (i == 1) {
-            (1 - t) * mControlPoints[j].y + t * mControlPoints[j + 1].y
+            (1 - t) * controlPoints[j].y + t * controlPoints[j + 1].y
         } else (1 - t) * calculateY(i - 1, j, t) + t * calculateY(i - 1, j + 1, t)
     }
 
@@ -304,24 +317,55 @@ class SwipeBackHelper(
     }
 
     abstract class Callback {
+
+        /**
+         * Callback release when the shape is fully showed.
+         */
         open fun onBackReleased(type: Int) = Unit
+
+        /**
+         * Callback current percent when swipe or release, size change in [0f,1f].
+         */
+        open fun onShapeChange(percent: Float) = Unit
+
+        /**
+         * Callback the Shape's color, Default color is FUll BLACK because is's match to the screen border.
+         */
         @ColorInt
-        open fun getShapeColor(): Int {
-            return Color.BLACK
-        }
+        open fun getShapeColor(): Int = Color.BLACK
 
+        /**
+         * Callback the Shape's alpha , Default value is 255.
+         */
         @IntRange(from = 0, to = 255)
-        open fun getShapeAlpha(): Int {
-            return SHAPE_DEFAULT_ALPHA
-        }
+        open fun getShapeAlpha(): Int = SHAPE_DEFAULT_ALPHA
 
+        /**
+         * Callback whether change the shape's alpha during swiping, Default is depend on current alpha is full (255).
+         */
+        open fun isShapeAlphaGradient(): Boolean = getShapeAlpha() != SHAPE_DEFAULT_ALPHA
+
+        /**
+         * Callback the max peak size of the shape NOTE: it's not a exact value.
+         */
         open fun getShapeMaxPeak(): Float = 0f
 
+        /**
+         * Callback the Arrow color, the Arrow size width and so on are depend on method getShapeMaxPeak(),
+         * DEFAULT color is WHITE.
+         */
         @ColorInt
-        open fun getArrowColor(): Int {
-            return Color.WHITE
-        }
+        open fun getArrowColor(): Int = Color.WHITE
 
+        /**
+         * Callback the Edge size DEFAULT is 24dp.
+         */
+        open fun getEdgeSize(): Float = -1F
+
+        /**
+         * Callback the support edge swipe side，support EDGE_LEFT EDGE_RIGHT or both.
+         */
+        @IntRange(from = 1, to = 3)
         open fun getEdgeTrackingEnabled(): Int = EDGE_LEFT
     }
 
@@ -332,15 +376,17 @@ class SwipeBackHelper(
         private const val MIN_ALPHA = 55
         private const val ANIMATOR_DURATION = 200L
         private const val PERCENT_MAX_ALPHA = 200
-        private const val SHAPE_DEFAULT_ALPHA = 210
+        private const val SHAPE_DEFAULT_ALPHA = 255
 
         private const val START_ANGLE = 50f
         private const val PERCENT_MAX_ANGLE = 65
 
         private const val GOLDEN_RATIO = 0.382f
+        private const val GOLDEN_RATIO_LARGE = 0.618f
         private const val REAL_PEAK_RATIO = 2.7272727f
 
         const val EDGE_LEFT = 1
         const val EDGE_RIGHT = 2
+        const val EDGE_LEFT_RIGHT = 3
     }
 }

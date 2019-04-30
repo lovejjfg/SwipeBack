@@ -21,7 +21,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(':lib')
+    implementation project(':swipeback')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "com.android.support:appcompat-v7:$SUPPORT_V7_VERSION"
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
