@@ -62,7 +62,7 @@ class SwipeLinearLayout @JvmOverloads constructor(
             }
 
             override fun getShapeMaxPeak(): Float {
-                return 150f
+                return 100f
             }
 
             override fun getEdgeTrackingEnabled(): Int {

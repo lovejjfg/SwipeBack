@@ -4,8 +4,9 @@
 
 [ ![Download](https://api.bintray.com/packages/lovejjfg/maven/SwipeBack/images/download.svg) ](https://bintray.com/lovejjfg/maven/SwipeBack/_latestVersion)
 
-##Release Note:
-###0.0.1
+## Release Note:
+
+### 0.0.1
  * support Both LEFT and RIGHT side swipe.
  * support more callback
 
