@@ -18,7 +18,7 @@
 
 * 1. Create Your `SwipeBackHelper` in Layout like this:
 
-            private var swipeBackHelper: SwipeBackHelper =
+            private val swipeBackHelper: SwipeBackHelper =
                 SwipeBackHelper(this, object : Callback() {
                     override fun onBackReleased() {
                         (getContext() as? Activity)?.finish()
@@ -28,11 +28,11 @@
 * 2. Override method:
 
             override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
-                return swipeBackHelper.onInterceptTouchEvent(ev)
+                 return swipeBackHelper.onInterceptTouchEvent(ev) || super.onInterceptTouchEvent(ev)
             }
 
             override fun onTouchEvent(ev: MotionEvent?): Boolean {
-                return swipeBackHelper.onTouchEvent(ev)
+                return swipeBackHelper.onTouchEvent(ev) || super.onTouchEvent(ev)
             }
 
             override fun dispatchDraw(canvas: Canvas?) {
@@ -91,4 +91,4 @@
             @IntRange(from = 1, to = 3)
             fun getEdgeTrackingEnabled(): Int = EDGE_LEFT
 
-PS: It's kotlin lib, so you should SUPPORT Kotlin at first!
+PS: It's `Kotlin` lib, so you should SUPPORT `Kotlin` at first!
