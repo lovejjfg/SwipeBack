@@ -56,6 +56,7 @@ class SwipeBackHelper(
     private var edgeSize = 30F
     private var trackingEdges = 0
     private var currentEdgeType = 0
+    private var animatorDuration: Long = DEFAULT_ANIMATOR_DURATION
     private var downEvent: MotionEvent? = null
 
     private val callbackRunnable = Runnable {
@@ -65,6 +66,7 @@ class SwipeBackHelper(
     private val context = targetView.context
 
     init {
+        animatorDuration = callback.getAnimatorDuration()
         trackingEdges = callback.getEdgeTrackingEnabled()
         val peakValue = callback.getShapeMaxPeak() * REAL_PEAK_RATIO
         maxPeakValue = if (peakValue != 0f) peakValue else context.dip2px(24f * REAL_PEAK_RATIO)
@@ -196,11 +198,11 @@ class SwipeBackHelper(
         if (returnAnimator.isRunning) {
             returnAnimator.cancel()
         }
-        val min = Math.min(ANIMATOR_DURATION, Math.abs(rawX).toLong())
+        val min = Math.min(animatorDuration, Math.abs(rawX).toLong())
         if (percent >= 1) {
-            returnAnimator.duration = (min * GOLDEN_RATIO_LARGE).toLong()
+            returnAnimator.duration = (min * GOLDEN_RATIO).toLong()
             returnAnimator.start()
-            targetView.postDelayed(callbackRunnable, min)
+            targetView.postDelayed(callbackRunnable, (min * GOLDEN_RATIO_LARGE).toLong())
         } else {
             returnAnimator.duration = min
             returnAnimator.start()
@@ -367,6 +369,11 @@ class SwipeBackHelper(
          */
         @IntRange(from = 1, to = 3)
         open fun getEdgeTrackingEnabled(): Int = EDGE_LEFT
+
+        /**
+         * Callback the support edge swipe side，support EDGE_LEFT EDGE_RIGHT or both.
+         */
+        open fun getAnimatorDuration(): Long = DEFAULT_ANIMATOR_DURATION
     }
 
     companion object {
@@ -374,7 +381,7 @@ class SwipeBackHelper(
         private val INTERPOLATOR = LinearOutSlowInInterpolator()
         private val LINEAR_INTERPOLATOR = FastOutLinearInInterpolator()
         private const val MIN_ALPHA = 55
-        private const val ANIMATOR_DURATION = 200L
+        private const val DEFAULT_ANIMATOR_DURATION = 160L
         private const val PERCENT_MAX_ALPHA = 200
         private const val SHAPE_DEFAULT_ALPHA = 255
 
