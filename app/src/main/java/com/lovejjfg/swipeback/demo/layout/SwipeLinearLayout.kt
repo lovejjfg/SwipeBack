@@ -61,10 +61,6 @@ class SwipeLinearLayout @JvmOverloads constructor(
                 println(percent)
             }
 
-            override fun getShapeMaxPeak(): Float {
-                return 100f
-            }
-
             override fun getEdgeTrackingEnabled(): Int {
                 return SwipeBackHelper.EDGE_LEFT_RIGHT
             }
