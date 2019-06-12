@@ -71,8 +71,9 @@ class SwipeBackHelper(
         val peakValue = callback.getShapeMaxPeak() * REAL_PEAK_RATIO
         maxPeakValue = if (peakValue != 0f) peakValue else context.dip2px(24f * REAL_PEAK_RATIO)
         val size = callback.getEdgeSize()
-        edgeSize = if (size == -1f) context.dip2px(24f) else size
-        xDefaultOffset = context.dip2px(50f)
+        edgeSize = if (size < 0) context.dip2px(24f) else size
+        val defaultXOffset = callback.getDefaultXOffset()
+        xDefaultOffset = if (defaultXOffset < 0) context.dip2px(24f) else defaultXOffset
         arrowLength = maxPeakValue * 0.1f
         pathPaint.color = callback.getShapeColor()
         pathPaint.style = Paint.Style.FILL
@@ -124,8 +125,7 @@ class SwipeBackHelper(
         if (ev == null) {
             return false
         }
-        val action = ev.action
-        when (action) {
+        when (ev.action) {
             MotionEvent.ACTION_DOWN -> {
                 downEvent = ev
                 return isEdges(ev)
@@ -139,7 +139,7 @@ class SwipeBackHelper(
 
     private fun isEdges(ev: MotionEvent): Boolean {
         val downEvent = this.downEvent ?: return false
-        return if (ev.x < edgeSize && trackingEdges and trackingEdges and EDGE_LEFT == EDGE_LEFT) {
+        return if (ev.x < edgeSize && trackingEdges and EDGE_LEFT == EDGE_LEFT) {
             if (ev.x - downEvent.x >= 0) {
                 currentEdgeType = EDGE_LEFT
             }
@@ -167,8 +167,7 @@ class SwipeBackHelper(
         }
         calculateRawX(event)
         calculateRawY(event)
-        val action = event.action
-        when (action) {
+        when (event.action) {
             MotionEvent.ACTION_CANCEL,
             MotionEvent.ACTION_UP -> {
                 handleUpEvent()
@@ -374,6 +373,11 @@ class SwipeBackHelper(
          * Callback the support edge swipe side，support EDGE_LEFT EDGE_RIGHT or both.
          */
         open fun getAnimatorDuration(): Long = DEFAULT_ANIMATOR_DURATION
+
+        /**
+         * Callback the x default offset size DEFAULT is 24dp.
+         */
+        open fun getDefaultXOffset(): Float = -1F
     }
 
     companion object {
