@@ -23,10 +23,10 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PointF
-import android.support.annotation.ColorInt
-import android.support.annotation.IntRange
-import android.support.v4.view.animation.FastOutLinearInInterpolator
-import android.support.v4.view.animation.LinearOutSlowInInterpolator
+import androidx.annotation.ColorInt
+import androidx.annotation.IntRange
+import androidx.interpolator.view.animation.FastOutLinearInInterpolator
+import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
 import android.view.MotionEvent
 import android.view.ViewGroup
 import java.util.ArrayList

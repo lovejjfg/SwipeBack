@@ -19,7 +19,7 @@ package com.lovejjfg.swipeback.demo.layout
 import android.app.Activity
 import android.content.Context
 import android.graphics.Canvas
-import android.support.design.widget.CoordinatorLayout
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.widget.Toast
@@ -35,7 +35,7 @@ class SwipeCoordinatorLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = -1
-) : CoordinatorLayout(context, attrs, defStyleAttr) {
+) : androidx.coordinatorlayout.widget.CoordinatorLayout(context, attrs, defStyleAttr) {
     public var callback: BackCallback? = null
     private var swipeBackHelper: SwipeBackHelper =
         SwipeBackHelper(this, object : Callback() {

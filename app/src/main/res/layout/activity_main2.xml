@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.lovejjfg.swipeback.demo.layout.SwipeLinearLayout
+<com.lovejjfg.swipeback.layout.SwipeLinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -11,7 +11,7 @@
 
     <include layout="@layout/content_main2"/>
 
-    <android.support.design.widget.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -19,4 +19,4 @@
         android:layout_margin="@dimen/fab_margin"
         app:srcCompat="@android:drawable/ic_dialog_email"/>
 
-</com.lovejjfg.swipeback.demo.layout.SwipeLinearLayout>
+</com.lovejjfg.swipeback.layout.SwipeLinearLayout>

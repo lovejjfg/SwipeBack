@@ -20,7 +20,7 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
-import android.support.annotation.ColorInt
+import androidx.annotation.ColorInt
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.widget.LinearLayout
